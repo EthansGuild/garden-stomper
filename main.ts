@@ -3,12 +3,6 @@ namespace SpriteKind {
     export const NoInteractions = SpriteKind.create()
     export const CooldownTimer = SpriteKind.create()
 }
-sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
-    if (sprites.readDataBoolean(otherSprite, "squishable") && (sprite.vy > 10 && sprite.bottom < otherSprite.y)) {
-        sprite.vy = -150
-        squish(otherSprite)
-    }
-})
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile0`, function (sprite, location) {
     tiles.placeOnTile(sprite, tiles.getTileLocation(60, 31))
 })
@@ -27,35 +21,54 @@ sprites.onCreated(SpriteKind.Enemy, function (sprite) {
         }
     })
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopSpawnRate`, function (sprite, location) {
+function setupLevel (num: number) {
+    if (lastSelectedLevel == num) {
+        return
+    }
+    music.stopAllSounds()
+    lastSelectedLevel = num
+    curLevel = num
+    if (num == 1) {
+        scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`lv1BG`)
+        music.play(music.createSong(assets.song`theme1`), music.PlaybackMode.LoopingInBackground)
+    } else if (num == 2) {
+        scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`lv2BG`)
+        music.play(music.createSong(assets.song`theme2`), music.PlaybackMode.LoopingInBackground)
+    } else if (num == 3) {
+        scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`lv3BG`)
+        music.play(music.createSong(assets.song`theme3`), music.PlaybackMode.LoopingInBackground)
+    } else if (num == 4) {
+        scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`lv4BG`)
+        music.play(music.createSong(assets.song`theme4`), music.PlaybackMode.LoopingInBackground)
+    }
+}
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult`, function (sprite, location) {
     tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
     sprite.setVelocity(0, 0)
-    if (spawnRate == 1 && info.score() >= spawnLv2Cost) {
-        info.changeScoreBy(0 - spawnLv2Cost)
-        spawnRate = 2
-    } else if (spawnRate == 2 && info.score() >= spawnLv3Cost) {
-        info.changeScoreBy(0 - spawnLv3Cost)
-        spawnRate = 3
-    } else if (spawnRate == 3 && info.score() >= spawnLv4Cost) {
-        info.changeScoreBy(0 - spawnLv4Cost)
-        spawnRate = 4
+    if (scoreMultiplier == 1 && info.score() >= multLv2Cost) {
+        info.changeScoreBy(0 - multLv2Cost)
+        scoreMultiplier = 2
+    } else if (scoreMultiplier == 2 && info.score() >= multLv3Cost) {
+        info.changeScoreBy(0 - multLv3Cost)
+        scoreMultiplier = 3
+    } else if (scoreMultiplier == 3 && info.score() >= multLv4Cost) {
+        info.changeScoreBy(0 - multLv4Cost)
+        scoreMultiplier = 4
+    } else if (scoreMultiplier == 4) {
+        sprite.sayText("already maxed out!", 2000, false)
     } else {
         sprite.sayText("not enough moolah :(", 2000, false)
     }
     updateAllShopText()
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopGrav`, function (sprite, location) {
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult2`, function (sprite, location) {
     tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
     sprite.setVelocity(0, 0)
-    if (playerGravity == 1 && info.score() >= gravLv2Cost) {
-        info.changeScoreBy(0 - gravLv2Cost)
-        setPlayerGravity(2)
-    } else if (playerGravity == 2 && info.score() >= gravLv3Cost) {
-        info.changeScoreBy(0 - gravLv3Cost)
-        setPlayerGravity(3)
-    } else if (playerGravity == 3 && info.score() >= gravLv4Cost) {
-        info.changeScoreBy(0 - gravLv4Cost)
-        setPlayerGravity(4)
+    if (!(chainReaction) && info.score() >= chainUnlockCost) {
+        info.changeScoreBy(0 - chainUnlockCost)
+        chainReaction = true
+    } else if (chainReaction) {
+        sprite.sayText("already maxed out!", 2000, false)
     } else {
         sprite.sayText("not enough moolah :(", 2000, false)
     }
@@ -66,10 +79,10 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, l
 })
 function setupShopUpgrades () {
     isInShop = false
-    playerGravity = 1
-    spawnRate = 1
-    scoreMultiplier = 1
-    luckySquishRate = 3
+    setPlayerGravity(4)
+    spawnRate = 4
+    scoreMultiplier = 4
+    luckySquishRate = 12
     enemyLifespan = 10000
     chainReaction = false
     shopText = sprites.create(assets.image`shopText`, SpriteKind.NoInteractions)
@@ -80,37 +93,37 @@ function setupShopUpgrades () {
     5000,
     true
     )
-    gravLv2Cost = 100
-    gravLv3Cost = 500
-    gravLv4Cost = 3000
-    spawnLv2Cost = 100
-    spawnLv3Cost = 500
-    spawnLv4Cost = 3000
-    multLv2Cost = 100
-    multLv3Cost = 500
-    multLv4Cost = 3000
-    luckyLv2Cost = 100
-    luckyLv3Cost = 500
-    luckyLv4Cost = 3000
+    gravLv2Cost = 50
+    gravLv3Cost = 250
+    gravLv4Cost = 1500
+    spawnLv2Cost = 60
+    spawnLv3Cost = 400
+    spawnLv4Cost = 2400
+    multLv2Cost = 60
+    multLv3Cost = 400
+    multLv4Cost = 2400
+    luckyLv2Cost = 70
+    luckyLv3Cost = 350
+    luckyLv4Cost = 2100
     lifespanLv2Cost = 300
     lifespanLv3Cost = 1500
     chainUnlockCost = 1000
 }
-controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
-    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
-    if (controller.left.isPressed()) {
-        mySprite.setImage(assets.image`idle`)
-    } else {
-        animation.runImageAnimation(
-        mySprite,
-        assets.animation`walkRight`,
-        100,
-        true
-        )
+controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
+        mySprite.vy = 0 - mySprite.ay / 3
     }
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`tutBack`, function (sprite, location) {
-    playTheme(0)
+scene.onHitWall(SpriteKind.Player, function (sprite, location) {
+    if (sprite.isHittingTile(CollisionDirection.Bottom)) {
+        combo = 0
+    }
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv2Forward`, function (sprite, location) {
+    setupLevel(2)
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv2Back`, function (sprite, location) {
+    setupLevel(2)
 })
 function updateChainReactionShopText () {
     chainReactionTitle = fancyText.create("Chain Reaction", 0, 0, fancyText.serif_small)
@@ -129,6 +142,10 @@ function updateChainReactionShopText () {
     tiles.placeOnTile(chainReactionLevel, tiles.getTileLocation(56, 28))
     tiles.placeOnTile(chainReactionUpgrade, tiles.getTileLocation(56, 30))
 }
+scene.onOverlapTile(SpriteKind.Player, assets.tile`bigTP`, function (sprite, location) {
+    music.play(music.melodyPlayable(music.beamUp), music.PlaybackMode.InBackground)
+    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row - 2))
+})
 function setupTutorial () {
     partyText = sprites.create(assets.image`partyText`, SpriteKind.NoInteractions)
     partyText.setPosition(96, 32)
@@ -155,31 +172,33 @@ function setupTutorial () {
     true
     )
 }
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv4Forward`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv4BG`)
-    playTheme(4)
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv1Forward`, function (sprite, location) {
+    setupLevel(1)
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult`, function (sprite, location) {
-    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
-    sprite.setVelocity(0, 0)
-    if (scoreMultiplier == 1 && info.score() >= multLv2Cost) {
-        info.changeScoreBy(0 - multLv2Cost)
-        scoreMultiplier = 2
-    } else if (scoreMultiplier == 2 && info.score() >= multLv3Cost) {
-        info.changeScoreBy(0 - multLv3Cost)
-        scoreMultiplier = 3
-    } else if (scoreMultiplier == 3 && info.score() >= multLv4Cost) {
-        info.changeScoreBy(0 - multLv4Cost)
-        scoreMultiplier = 4
-    } else {
-        sprite.sayText("not enough moolah :(", 2000, false)
+function reloadMainTilemap () {
+    tiles.setCurrentTilemap(tilemap`level1`)
+    if (maxLevelAttained >= 1) {
+        openLevel1()
     }
-    updateAllShopText()
-})
+    if (maxLevelAttained >= 2) {
+        openLevel2()
+    }
+    if (maxLevelAttained >= 3) {
+        openLevel3()
+    }
+    if (maxLevelAttained >= 4) {
+        openLevel4()
+    }
+    if (maxLevelAttained >= 5) {
+        openEnd()
+    }
+}
 info.onScore(1200, function () {
-    tiles.setTileAt(tiles.getTileLocation(104, 4), assets.tile`lv3Forward`)
-    tiles.setWallAt(tiles.getTileLocation(104, 4), false)
-    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+    if (maxLevelAttained == 2) {
+        openLevel3()
+        music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+        maxLevelAttained = 3
+    }
 })
 function flip (sprite: Sprite) {
     spriteImage = sprite.image.clone()
@@ -225,18 +244,28 @@ function scorePopup (text: string, x: number, y: number) {
 scene.onOverlapTile(SpriteKind.Player, assets.tile`shop`, function (sprite, location) {
     returnPoint = tiles.getTileLocation(location.column, location.row + 2)
     isInShop = true
-    lastPlayedTheme = 999
+    lastSelectedLevel = 999
     sprites.destroyAllSpritesOfKind(SpriteKind.Enemy)
     music.stopAllSounds()
     music.play(music.createSong(assets.song`shopTheme`), music.PlaybackMode.LoopingInBackground)
+    scroller.setLayerImage(scroller.BackgroundLayer.Layer1, assets.image`tmp`)
     tiles.setCurrentTilemap(tilemap`level2`)
     tiles.placeOnTile(mySprite, tiles.getTileLocation(3, 31))
     mySprite.setVelocity(0, 0)
     updateAllShopText()
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv1Back`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv1BG`)
-    playTheme(1)
+controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (chainReaction && !(cooldown)) {
+        cooldown = sprites.create(assets.image`tmp`, SpriteKind.CooldownTimer)
+        cooldown.lifespan = 30000
+        chainActive = true
+        for (let value of sprites.allOfKind(SpriteKind.Enemy)) {
+            if (sprites.readDataBoolean(value, "squishable")) {
+                squish(value)
+            }
+        }
+        chainActive = false
+    }
 })
 function setupEffects () {
     luckyEffect = extraEffects.createCustomSpreadEffectData(
@@ -268,53 +297,107 @@ scene.onOverlapTile(SpriteKind.Enemy, sprites.dungeon.hazardLava1, function (spr
     sprites.destroy(sprite)
 })
 info.onScore(15, function () {
-    tiles.setTileAt(tiles.getTileLocation(43, 4), sprites.builtin.forestTiles10)
-    tiles.setWallAt(tiles.getTileLocation(43, 4), false)
-    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
-})
-info.onScore(300, function () {
-    tiles.setTileAt(tiles.getTileLocation(76, 4), assets.tile`lv2Forward`)
-    tiles.setWallAt(tiles.getTileLocation(76, 4), false)
-    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
-})
-scene.onHitWall(SpriteKind.Enemy, function (sprite, location) {
-    if (!(sprites.readDataBoolean(sprite, "grounded"))) {
-        sprites.setDataBoolean(sprite, "grounded", true)
-        sprites.setDataBoolean(sprite, "squishable", true)
-        sprite.ay = 400
-        if (Math.percentChance(50)) {
-            flip(sprite)
-            sprite.vx = 50
-        } else {
-            sprite.vx = -50
-        }
-    } else {
-        if (sprite.isHittingTile(CollisionDirection.Left)) {
-            flip(sprite)
-            sprite.vx = 50
-        } else if (sprite.isHittingTile(CollisionDirection.Right)) {
-            flip(sprite)
-            sprite.vx = -50
-        }
+    if (maxLevelAttained == 0) {
+        openLevel1()
+        music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+        maxLevelAttained = 1
     }
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult1`, function (sprite, location) {
+controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
+    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
+    if (controller.right.isPressed()) {
+        mySprite.setImage(assets.image`idle`)
+    } else {
+        animation.runImageAnimation(
+        mySprite,
+        assets.animation`walkLeft`,
+        100,
+        true
+        )
+    }
+})
+info.onScore(300, function () {
+    if (maxLevelAttained == 1) {
+        openLevel2()
+        music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+        maxLevelAttained = 2
+    }
+})
+info.onScore(15000, function () {
+    if (maxLevelAttained == 4) {
+        openEnd()
+        music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+        maxLevelAttained = 5
+    }
+})
+function openLevel2 () {
+    tiles.setTileAt(tiles.getTileLocation(76, 4), assets.tile`lv2Forward`)
+    tiles.setWallAt(tiles.getTileLocation(76, 4), false)
+}
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopSpawnRate`, function (sprite, location) {
     tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
     sprite.setVelocity(0, 0)
-    if (luckySquishRate == 10000 && info.score() >= lifespanLv2Cost) {
-        info.changeScoreBy(0 - lifespanLv2Cost)
-        luckySquishRate = 6
-    } else if (luckySquishRate == 15000 && info.score() >= lifespanLv3Cost) {
-        info.changeScoreBy(0 - lifespanLv3Cost)
-        luckySquishRate = 9
+    if (spawnRate == 1 && info.score() >= spawnLv2Cost) {
+        info.changeScoreBy(0 - spawnLv2Cost)
+        spawnRate = 2
+    } else if (spawnRate == 2 && info.score() >= spawnLv3Cost) {
+        info.changeScoreBy(0 - spawnLv3Cost)
+        spawnRate = 3
+    } else if (spawnRate == 3 && info.score() >= spawnLv4Cost) {
+        info.changeScoreBy(0 - spawnLv4Cost)
+        spawnRate = 4
+    } else if (spawnRate == 4) {
+        sprite.sayText("already maxed out!", 2000, false)
     } else {
         sprite.sayText("not enough moolah :(", 2000, false)
     }
     updateAllShopText()
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv2Back`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv2BG`)
-    playTheme(2)
+controller.right.onEvent(ControllerButtonEvent.Released, function () {
+    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
+    if (controller.left.isPressed()) {
+        animation.runImageAnimation(
+        mySprite,
+        assets.animation`walkLeft`,
+        100,
+        true
+        )
+    } else {
+        mySprite.setImage(assets.image`idle`)
+    }
+})
+controller.left.onEvent(ControllerButtonEvent.Released, function () {
+    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
+    if (controller.right.isPressed()) {
+        animation.runImageAnimation(
+        mySprite,
+        assets.animation`walkRight`,
+        100,
+        true
+        )
+    } else {
+        mySprite.setImage(assets.image`idle`)
+    }
+})
+function openLevel4 () {
+    tiles.setTileAt(tiles.getTileLocation(132, 4), assets.tile`lv4Forward`)
+    tiles.setWallAt(tiles.getTileLocation(132, 4), false)
+}
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult1`, function (sprite, location) {
+    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
+    sprite.setVelocity(0, 0)
+    if (enemyLifespan == 10000 && info.score() >= lifespanLv2Cost) {
+        info.changeScoreBy(0 - lifespanLv2Cost)
+        enemyLifespan = 15000
+    } else if (enemyLifespan == 15000 && info.score() >= lifespanLv3Cost) {
+        info.changeScoreBy(0 - lifespanLv3Cost)
+        enemyLifespan = 20000
+    } else if (enemyLifespan == 20000) {
+        sprite.sayText("already maxed out!", 2000, false)
+    } else {
+        sprite.sayText("not enough moolah :(", 2000, false)
+    }
+    updateAllShopText()
 })
 function updateLuckySquishRateShopText () {
     luckySquishTitle = fancyText.create("Lucky Squish Rate", 0, 0, fancyText.serif_small)
@@ -339,34 +422,14 @@ function updateLuckySquishRateShopText () {
     tiles.placeOnTile(luckySquishLevel, tiles.getTileLocation(40, 28))
     tiles.placeOnTile(luckySquishUpgrade, tiles.getTileLocation(40, 30))
 }
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult0`, function (sprite, location) {
-    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
-    sprite.setVelocity(0, 0)
-    if (luckySquishRate == 3 && info.score() >= luckyLv2Cost) {
-        info.changeScoreBy(0 - luckyLv2Cost)
-        luckySquishRate = 6
-    } else if (luckySquishRate == 6 && info.score() >= luckyLv3Cost) {
-        info.changeScoreBy(0 - luckyLv3Cost)
-        luckySquishRate = 9
-    } else if (luckySquishRate == 9 && info.score() >= luckyLv4Cost) {
-        info.changeScoreBy(0 - luckyLv4Cost)
-        luckySquishRate = 12
-    } else {
-        sprite.sayText("not enough moolah :(", 2000, false)
-    }
-    updateAllShopText()
-})
-scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult2`, function (sprite, location) {
-    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
-    sprite.setVelocity(0, 0)
-    if (!(chainReaction) && info.score() >= chainUnlockCost) {
-        info.changeScoreBy(0 - chainUnlockCost)
-        chainReaction = true
-    } else {
-        sprite.sayText("not enough moolah :(", 2000, false)
-    }
-    updateAllShopText()
-})
+function openLevel1 () {
+    tiles.setTileAt(tiles.getTileLocation(43, 4), sprites.builtin.forestTiles10)
+    tiles.setWallAt(tiles.getTileLocation(43, 4), false)
+}
+function openLevel3 () {
+    tiles.setTileAt(tiles.getTileLocation(104, 4), assets.tile`lv3Forward`)
+    tiles.setWallAt(tiles.getTileLocation(104, 4), false)
+}
 function updateAllShopText () {
     sprites.destroyAllSpritesOfKind(SpriteKind.ShopText)
     updateGravityShopText()
@@ -383,7 +446,7 @@ function updateSpawnRateShopText () {
         spawnRateLevel = textsprite.create("Lv 1/4: 2s")
         spawnRateUpgrade = textsprite.create("Buy 1s for " + spawnLv2Cost + "?")
     } else if (spawnRate == 2) {
-        spawnRateLevel = textsprite.create("Lv 2/4: 1.0s")
+        spawnRateLevel = textsprite.create("Lv 2/4: 1s")
         spawnRateUpgrade = textsprite.create("Buy 0.5s for " + spawnLv3Cost + "?")
     } else if (spawnRate == 3) {
         spawnRateLevel = textsprite.create("Lv 3/4: 0.5s")
@@ -399,60 +462,81 @@ function updateSpawnRateShopText () {
     tiles.placeOnTile(spawnRateLevel, tiles.getTileLocation(24, 28))
     tiles.placeOnTile(spawnRateUpgrade, tiles.getTileLocation(24, 30))
 }
-controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (chainReaction && !(cooldown)) {
-        cooldown = sprites.create(img`
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            . . . . . . . . . . . . . . . . 
-            `, SpriteKind.CooldownTimer)
-        cooldown.lifespan = 3000
-        for (let value of sprites.allOfKind(SpriteKind.Enemy)) {
-            if (sprites.readDataBoolean(value, "squishable")) {
-                squish(value)
-            }
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv4Forward`, function (sprite, location) {
+    setupLevel(4)
+})
+function openEnd () {
+    tiles.setTileAt(tiles.getTileLocation(160, 4), assets.tile`endForward`)
+    tiles.setWallAt(tiles.getTileLocation(160, 4), false)
+}
+scene.onHitWall(SpriteKind.Enemy, function (sprite, location) {
+    if (!(sprites.readDataBoolean(sprite, "grounded")) && sprites.readDataBoolean(sprite, "squishable")) {
+        sprites.setDataBoolean(sprite, "grounded", true)
+        sprite.ay = 400
+        if (Math.percentChance(50)) {
+            flip(sprite)
+            sprite.vx = 50
+        } else {
+            sprite.vx = -50
+        }
+    } else {
+        if (sprite.isHittingTile(CollisionDirection.Left)) {
+            flip(sprite)
+            sprite.vx = 50
+        } else if (sprite.isHittingTile(CollisionDirection.Right)) {
+            flip(sprite)
+            sprite.vx = -50
         }
     }
 })
-controller.right.onEvent(ControllerButtonEvent.Released, function () {
+scene.onOverlapTile(SpriteKind.Player, assets.tile`smallTP`, function (sprite, location) {
+    music.play(music.melodyPlayable(music.beamUp), music.PlaybackMode.InBackground)
+    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row - 7))
+})
+controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
     animation.stopAnimation(animation.AnimationTypes.All, mySprite)
     if (controller.left.isPressed()) {
+        mySprite.setImage(assets.image`idle`)
+    } else {
         animation.runImageAnimation(
         mySprite,
-        assets.animation`walkLeft`,
+        assets.animation`walkRight`,
         100,
         true
         )
-    } else {
-        mySprite.setImage(assets.image`idle`)
     }
 })
-sprites.onDestroyed(SpriteKind.CooldownTimer, function (sprite) {
-    cooldown = null
-})
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv1Forward`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv1BG`)
-    playTheme(1)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Projectile, function (sprite, otherSprite) {
+    info.changeScoreBy(-2)
+    music.play(music.melodyPlayable(music.bigCrash), music.PlaybackMode.InBackground)
+    timer.throttle("action", 100, function () {
+        extraEffects.createSpreadEffectAt(extraEffects.createSingleColorSpreadEffectData(2, ExtraEffectPresetShape.Explosion), otherSprite.x, otherSprite.y, 100, 30, 20)
+    })
 })
 info.onScore(1, function () {
 	
 })
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv3Back`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv3BG`)
-    playTheme(3)
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv3Forward`, function (sprite, location) {
+    setupLevel(3)
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult0`, function (sprite, location) {
+    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
+    sprite.setVelocity(0, 0)
+    if (luckySquishRate == 3 && info.score() >= luckyLv2Cost) {
+        info.changeScoreBy(0 - luckyLv2Cost)
+        luckySquishRate = 6
+    } else if (luckySquishRate == 6 && info.score() >= luckyLv3Cost) {
+        info.changeScoreBy(0 - luckyLv3Cost)
+        luckySquishRate = 9
+    } else if (luckySquishRate == 9 && info.score() >= luckyLv4Cost) {
+        info.changeScoreBy(0 - luckyLv4Cost)
+        luckySquishRate = 12
+    } else if (luckySquishRate == 12) {
+        sprite.sayText("already maxed out!", 2000, false)
+    } else {
+        sprite.sayText("not enough moolah :(", 2000, false)
+    }
+    updateAllShopText()
 })
 function setPlayerGravity (selection: number) {
     playerGravity = selection
@@ -466,14 +550,6 @@ function setPlayerGravity (selection: number) {
         mySprite.ay = 1200
     }
 }
-scene.onOverlapTile(SpriteKind.Player, assets.tile`smallTP`, function (sprite, location) {
-    music.play(music.melodyPlayable(music.beamUp), music.PlaybackMode.InBackground)
-    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row - 7))
-})
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv2Forward`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv2BG`)
-    playTheme(2)
-})
 function updateEnemyLifeSpanShopText () {
     enemyLifespanTitle = fancyText.create("Enemy Lifespan", 0, 0, fancyText.serif_small)
     // Update enemy lifespan texts
@@ -494,27 +570,51 @@ function updateEnemyLifeSpanShopText () {
     tiles.placeOnTile(enemyLifespanLevel, tiles.getTileLocation(48, 28))
     tiles.placeOnTile(enemyLifespanUpgrade, tiles.getTileLocation(48, 30))
 }
-scene.onOverlapTile(SpriteKind.Player, assets.tile`lv3Forward`, function (sprite, location) {
-    scene.setBackgroundImage(assets.image`lv3BG`)
-    playTheme(3)
+sprites.onDestroyed(SpriteKind.CooldownTimer, function (sprite) {
+    cooldown = null
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`tutBack`, function (sprite, location) {
+    setupLevel(0)
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv1Back`, function (sprite, location) {
+    setupLevel(1)
+})
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv3Back`, function (sprite, location) {
+    setupLevel(3)
 })
 scene.onOverlapTile(SpriteKind.Player, assets.tile`shopExit`, function (sprite, location) {
     music.stopAllSounds()
-    playTheme(curLevel)
+    setupLevel(curLevel)
     isInShop = false
-    tiles.setCurrentTilemap(tilemap`level1`)
+    reloadMainTilemap()
     tiles.placeOnTile(mySprite, returnPoint)
     mySprite.setVelocity(0, 0)
 })
-controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (mySprite.isHittingTile(CollisionDirection.Bottom)) {
-        mySprite.vy = 0 - mySprite.ay / 3
+info.onScore(5000, function () {
+    if (maxLevelAttained == 3) {
+        openLevel4()
+        music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+        maxLevelAttained = 4
     }
 })
-info.onScore(5000, function () {
-    tiles.setTileAt(tiles.getTileLocation(132, 4), assets.tile`lv4Forward`)
-    tiles.setWallAt(tiles.getTileLocation(132, 4), false)
-    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+scene.onOverlapTile(SpriteKind.Player, assets.tile`shopGrav`, function (sprite, location) {
+    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row + 2))
+    sprite.setVelocity(0, 0)
+    if (playerGravity == 1 && info.score() >= gravLv2Cost) {
+        info.changeScoreBy(0 - gravLv2Cost)
+        setPlayerGravity(2)
+    } else if (playerGravity == 2 && info.score() >= gravLv3Cost) {
+        info.changeScoreBy(0 - gravLv3Cost)
+        setPlayerGravity(3)
+    } else if (playerGravity == 3 && info.score() >= gravLv4Cost) {
+        info.changeScoreBy(0 - gravLv4Cost)
+        setPlayerGravity(4)
+    } else if (playerGravity == 4) {
+        sprite.sayText("already maxed out!", 2000, false)
+    } else {
+        sprite.sayText("not enough moolah :(", 2000, false)
+    }
+    updateAllShopText()
 })
 function makeEnemy () {
     if (curLevel == 0) {
@@ -534,10 +634,13 @@ function makeEnemy () {
         tiles.placeOnTile(mySprite2, tiles.getTileLocation(randint(138, 153), 0))
     }
     sprites.setDataBoolean(mySprite2, "grounded", false)
-    sprites.setDataBoolean(mySprite2, "squishable", false)
+    sprites.setDataBoolean(mySprite2, "squishable", true)
     sprites.setDataBoolean(mySprite2, "flipped", false)
     mySprite2.setVelocity(0, 50)
 }
+scene.onOverlapTile(SpriteKind.Player, assets.tile`lv4Back`, function (sprite, location) {
+    setupLevel(4)
+})
 function updateScoreMultiplierShopText () {
     scoreMultTitle = fancyText.create("Score Multiplier", 0, 0, fancyText.serif_small)
     // Update score multiplier texts
@@ -547,10 +650,10 @@ function updateScoreMultiplierShopText () {
     } else if (scoreMultiplier == 2) {
         scoreMultLevel = textsprite.create("Lv 2/4: 2x")
         scoreMultUpgrade = textsprite.create("Buy 3x for " + multLv3Cost + "?")
-    } else if (scoreMultiplier == 4) {
+    } else if (scoreMultiplier == 3) {
         scoreMultLevel = textsprite.create("Lv 3/4: 3x")
         scoreMultUpgrade = textsprite.create("Buy 4x for " + multLv4Cost + "?")
-    } else if (scoreMultiplier == 8) {
+    } else if (scoreMultiplier == 4) {
         scoreMultLevel = textsprite.create("Lv 4/4: 4x")
         scoreMultUpgrade = textsprite.create("MAXED", 0, 7)
     }
@@ -561,19 +664,6 @@ function updateScoreMultiplierShopText () {
     tiles.placeOnTile(scoreMultLevel, tiles.getTileLocation(32, 28))
     tiles.placeOnTile(scoreMultUpgrade, tiles.getTileLocation(32, 30))
 }
-controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
-    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
-    if (controller.right.isPressed()) {
-        mySprite.setImage(assets.image`idle`)
-    } else {
-        animation.runImageAnimation(
-        mySprite,
-        assets.animation`walkLeft`,
-        100,
-        true
-        )
-    }
-})
 function squish (sprite: Sprite) {
     updateScore(sprite)
     newlySelectedScream = randScreamList._pickRandom()
@@ -581,9 +671,6 @@ function squish (sprite: Sprite) {
         newlySelectedScream = randScreamList._pickRandom()
     }
     music.play(newlySelectedScream, music.PlaybackMode.InBackground)
-    timer.throttle("action", 100, function () {
-    	
-    })
     sprites.setDataBoolean(sprite, "squishable", false)
     sprite.vx = 0
     sprite.sy = 0.5
@@ -598,37 +685,31 @@ function squish (sprite: Sprite) {
     })
 }
 function updateScore (sprite: Sprite) {
+    if (chainActive) {
+        pointsScored = Math.constrain(curLevel, 1, 4) * scoreMultiplier
+        scorePopup("+" + convertToText(pointsScored), sprite.x, sprite.y)
+        info.changeScoreBy(pointsScored)
+        return
+    }
     if (Math.percentChance(luckySquishRate)) {
         music.play(music.melodyPlayable(music.baDing), music.PlaybackMode.InBackground)
         extraEffects.createSpreadEffectAt(luckyEffect, sprite.x, sprite.y, 200, 20)
         pointsScored = Math.constrain(curLevel, 1, 4) * (scoreMultiplier * 10)
         scorePopup("Lucky! +" + convertToText(pointsScored), sprite.x, sprite.y)
+    } else if (combo > 1) {
+        comboModifier = Math.constrain(1 + combo * 0.5, 2, 4)
+        pointsScored = Math.constrain(curLevel, 1, 4) * scoreMultiplier * comboModifier
+        scorePopup("Combo! x" + comboModifier + " +" + convertToText(pointsScored), sprite.x, sprite.y)
     } else {
         pointsScored = Math.constrain(curLevel, 1, 4) * scoreMultiplier
         scorePopup("+" + convertToText(pointsScored), sprite.x, sprite.y)
     }
+    combo += 1
     info.changeScoreBy(pointsScored)
-}
-function playTheme (num: number) {
-    if (lastPlayedTheme == num) {
-        return
-    }
-    music.stopAllSounds()
-    lastPlayedTheme = num
-    curLevel = num
-    if (num == 1) {
-        music.play(music.createSong(assets.song`theme1`), music.PlaybackMode.LoopingInBackground)
-    } else if (num == 2) {
-        music.play(music.createSong(assets.song`theme2`), music.PlaybackMode.LoopingInBackground)
-    } else if (num == 3) {
-        music.play(music.createSong(assets.song`theme3`), music.PlaybackMode.LoopingInBackground)
-    } else if (num == 4) {
-        music.play(music.createSong(assets.song`theme4`), music.PlaybackMode.LoopingInBackground)
-    }
 }
 function setupLists () {
     level0Enemies = [assets.image`cake`, assets.image`pizza`, assets.image`taco`]
-    level1Enemies = [assets.image`cat`, assets.image`dog`, assets.image`monkey`]
+    level1Enemies = [assets.image`football guy`, assets.image`car`, assets.image`monkey`]
     level2Enemies = [assets.image`bat`, assets.image`snake`, assets.image`duck`]
     level3Enemies = [assets.image`crab`, assets.image`goldFish`, assets.image`yellowStripedFish`]
     level4Enemies = [assets.image`dino`, assets.image`ghost`, assets.image`shroom`]
@@ -640,23 +721,25 @@ function setupLists () {
     ]
     lastSelectedScream = randScreamList._pickRandom()
 }
-scene.onOverlapTile(SpriteKind.Player, assets.tile`bigTP`, function (sprite, location) {
-    music.play(music.melodyPlayable(music.beamUp), music.PlaybackMode.InBackground)
-    tiles.placeOnTile(sprite, tiles.getTileLocation(location.column, location.row - 2))
+scene.onOverlapTile(SpriteKind.Player, sprites.dungeon.floorDark3, function (sprite, location) {
+    tiles.setTileAt(location, assets.tile`myTile18`)
+    controller.moveSprite(mySprite, 0, 0)
+    mySprite.ay = 0
+    mySprite.setVelocity(0, 0)
+    music.stopAllSounds()
+    for (let index = 0; index < 2000; index++) {
+        music.play(music.melodyPlayable(music.footstep), music.PlaybackMode.UntilDone)
+    }
+    pause(1000)
 })
-controller.left.onEvent(ControllerButtonEvent.Released, function () {
-    animation.stopAnimation(animation.AnimationTypes.All, mySprite)
-    if (controller.right.isPressed()) {
-        animation.runImageAnimation(
-        mySprite,
-        assets.animation`walkRight`,
-        100,
-        true
-        )
-    } else {
-        mySprite.setImage(assets.image`idle`)
+sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
+    if (sprites.readDataBoolean(otherSprite, "squishable") && (sprite.vy > 10 && sprite.bottom < otherSprite.y)) {
+        sprite.vy = -150
+        squish(otherSprite)
     }
 })
+let laser: Sprite = null
+let comboModifier = 0
 let pointsScored = 0
 let lastSelectedScream: music.Playable = null
 let randScreamList: music.SoundEffect[] = []
@@ -670,7 +753,6 @@ let level2Enemies: Image[] = []
 let level1Enemies: Image[] = []
 let level0Enemies: Image[] = []
 let mySprite2: Sprite = null
-let curLevel = 0
 let enemyLifespanUpgrade: TextSprite = null
 let enemyLifespanLevel: TextSprite = null
 let enemyLifespanTitle: fancyText.TextSprite = null
@@ -682,73 +764,106 @@ let luckySquishLevel: TextSprite = null
 let luckySquishTitle: fancyText.TextSprite = null
 let enemyBurnEffect: SpreadEffectData = null
 let luckyEffect: SpreadEffectData = null
+let chainActive = false
 let returnPoint: tiles.Location = null
 let textSprite: TextSprite = null
 let gravUpgrade: TextSprite = null
 let gravLevel: TextSprite = null
+let playerGravity = 0
 let gravTitle: fancyText.TextSprite = null
 let spriteImage: Image = null
+let maxLevelAttained = 0
 let squishPrompt: Sprite = null
 let jumpPrompt: Sprite = null
 let partyText: Sprite = null
 let chainReactionUpgrade: TextSprite = null
 let chainReactionLevel: TextSprite = null
 let chainReactionTitle: fancyText.TextSprite = null
-let chainUnlockCost = 0
+let combo = 0
 let lifespanLv3Cost = 0
 let lifespanLv2Cost = 0
 let luckyLv4Cost = 0
 let luckyLv3Cost = 0
 let luckyLv2Cost = 0
-let multLv4Cost = 0
-let multLv3Cost = 0
-let multLv2Cost = 0
-let shopText: Sprite = null
-let chainReaction = false
-let luckySquishRate = 0
-let scoreMultiplier = 0
-let isInShop = false
-let gravLv4Cost = 0
-let gravLv3Cost = 0
-let gravLv2Cost = 0
-let playerGravity = 0
 let spawnLv4Cost = 0
 let spawnLv3Cost = 0
 let spawnLv2Cost = 0
+let gravLv4Cost = 0
+let gravLv3Cost = 0
+let gravLv2Cost = 0
+let shopText: Sprite = null
+let luckySquishRate = 0
 let spawnRate = 0
+let isInShop = false
+let chainUnlockCost = 0
+let chainReaction = false
+let multLv4Cost = 0
+let multLv3Cost = 0
+let multLv2Cost = 0
+let scoreMultiplier = 0
+let curLevel = 0
 let enemyLifespan = 0
-let lastPlayedTheme = 0
+let lastSelectedLevel = 0
 let mySprite: Sprite = null
 let cooldown: Sprite = null
 game.splash("garden stomper")
 tiles.setCurrentTilemap(tilemap`level1`)
-setupTutorial()
-setupShopUpgrades()
-setupLists()
-setupEffects()
 mySprite = sprites.create(assets.image`idle`, SpriteKind.Player)
 controller.moveSprite(mySprite, 100, 0)
 mySprite.z = 999
 tiles.placeOnTile(mySprite, tiles.getTileLocation(0, 4))
+// remove later
+tiles.placeOnTile(mySprite, tiles.getTileLocation(157, 4))
 scene.cameraFollowSprite(mySprite)
-setPlayerGravity(1)
-scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.OnlyHorizontal)
-scroller.setCameraScrollingMultipliers(0.3, 0)
-lastPlayedTheme = 0
-playTheme(0)
+scroller.scrollBackgroundWithCamera(scroller.CameraScrollMode.OnlyHorizontal, scroller.BackgroundLayer.Layer1)
+scroller.setCameraScrollingMultipliers(0.3, 0, scroller.BackgroundLayer.Layer1)
+scroller.setLayerImage(scroller.BackgroundLayer.Layer0, assets.image`stars0`)
+scroller.scrollBackgroundWithSpeed(-13, 13, scroller.BackgroundLayer.Layer0)
+lastSelectedLevel = 0
+setupTutorial()
+setupShopUpgrades()
+setupLists()
+setupEffects()
+setupLevel(0)
 game.onUpdateInterval(250, function () {
     if (spawnRate == 4 && !(isInShop)) {
-        makeEnemy()
-    }
-})
-game.onUpdateInterval(500, function () {
-    if (spawnRate == 3 && !(isInShop)) {
         makeEnemy()
     }
 })
 game.onUpdateInterval(2000, function () {
     if (spawnRate == 1 && !(isInShop)) {
         makeEnemy()
+    }
+})
+game.onUpdateInterval(1000, function () {
+    if (spawnRate == 2 && !(isInShop)) {
+        makeEnemy()
+    }
+})
+game.onUpdateInterval(1000, function () {
+    if (curLevel == 4) {
+        laser = sprites.create(img`
+            . . . . . 2 2 2 2 2 . . . . . 
+            . . . . . 2 2 1 2 2 . . . . . 
+            . . . . . 2 2 1 2 2 . . . . . 
+            . . . . 2 2 2 1 2 2 2 . . . . 
+            . . 2 2 1 1 1 1 1 1 1 2 2 . . 
+            . 2 1 1 3 3 3 3 3 3 3 1 1 2 . 
+            2 1 3 2 2 2 3 1 3 2 2 2 3 1 2 
+            2 1 2 . 2 2 3 1 3 2 2 . 2 1 2 
+            2 3 3 2 2 2 3 1 3 2 2 2 3 3 2 
+            . 2 3 3 2 3 3 1 3 3 2 3 3 2 . 
+            . . 2 2 2 1 1 1 1 1 2 2 2 . . 
+            . . 2 2 1 1 1 1 1 1 1 2 2 . . 
+            . . 2 3 3 1 1 1 1 1 3 3 2 . . 
+            . . . 2 3 3 3 3 3 3 3 2 . . . 
+            . . . . 2 2 2 2 2 2 2 . . . . 
+            `, SpriteKind.Projectile)
+        laser.z = 1001
+        laser.vy = 50
+        laser.lifespan = 10000
+        laser.setFlag(SpriteFlag.GhostThroughWalls, true)
+        tiles.placeOnTile(laser, tiles.getTileLocation(randint(138, 153), 0))
     }
 })
 // footsteps
@@ -759,8 +874,8 @@ forever(function () {
         })
     }
 })
-game.onUpdateInterval(1000, function () {
-    if (spawnRate == 2 && !(isInShop)) {
+game.onUpdateInterval(500, function () {
+    if (spawnRate == 3 && !(isInShop)) {
         makeEnemy()
     }
 })
