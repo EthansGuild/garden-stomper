@@ -71,7 +71,7 @@ function setupShopUpgrades () {
     scoreMultiplier = 1
     luckySquishRate = 3
     enemyLifespan = 10000
-    chainReaction = true
+    chainReaction = false
     shopText = sprites.create(assets.image`shopText`, SpriteKind.NoInteractions)
     shopText.setPosition(144, 448)
     animation.runMovementAnimation(
@@ -179,6 +179,7 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`shopMult`, function (sprite, 
 info.onScore(1200, function () {
     tiles.setTileAt(tiles.getTileLocation(104, 4), assets.tile`lv3Forward`)
     tiles.setWallAt(tiles.getTileLocation(104, 4), false)
+    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
 })
 function flip (sprite: Sprite) {
     spriteImage = sprite.image.clone()
@@ -266,9 +267,15 @@ scene.onOverlapTile(SpriteKind.Enemy, sprites.dungeon.hazardLava1, function (spr
     music.play(music.createSoundEffect(WaveShape.Noise, 3992, 4645, 255, 0, 300, SoundExpressionEffect.Warble, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
     sprites.destroy(sprite)
 })
+info.onScore(15, function () {
+    tiles.setTileAt(tiles.getTileLocation(43, 4), sprites.builtin.forestTiles10)
+    tiles.setWallAt(tiles.getTileLocation(43, 4), false)
+    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
+})
 info.onScore(300, function () {
     tiles.setTileAt(tiles.getTileLocation(76, 4), assets.tile`lv2Forward`)
     tiles.setWallAt(tiles.getTileLocation(76, 4), false)
+    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
 })
 scene.onHitWall(SpriteKind.Enemy, function (sprite, location) {
     if (!(sprites.readDataBoolean(sprite, "grounded"))) {
@@ -504,13 +511,10 @@ controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
         mySprite.vy = 0 - mySprite.ay / 3
     }
 })
-info.onScore(20, function () {
-    tiles.setTileAt(tiles.getTileLocation(43, 4), sprites.builtin.forestTiles10)
-    tiles.setWallAt(tiles.getTileLocation(43, 4), false)
-})
 info.onScore(5000, function () {
     tiles.setTileAt(tiles.getTileLocation(132, 4), assets.tile`lv4Forward`)
     tiles.setWallAt(tiles.getTileLocation(132, 4), false)
+    music.play(music.melodyPlayable(music.siren), music.PlaybackMode.InBackground)
 })
 function makeEnemy () {
     if (curLevel == 0) {
