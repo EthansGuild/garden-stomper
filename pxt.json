@@ -7,7 +7,8 @@
         "Timers": "github:microsoft/arcade-timers#v1.1.0",
         "Extra Effects": "github:alexszeto/extra-effects#v3.1.0",
         "arcade-text": "github:microsoft/arcade-text#v1.3.0",
-        "arcade-background-scroll": "github:microsoft/arcade-background-scroll#v0.1.2"
+        "arcade-background-scroll": "github:microsoft/arcade-background-scroll#v0.1.2",
+        "arcade-fancy-text": "github:riknoll/arcade-fancy-text#v0.2.0"
     },
     "files": [
         "main.blocks",
